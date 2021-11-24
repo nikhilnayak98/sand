@@ -10,9 +10,9 @@ nmap -sU -p <port> <ip address>
 
 host -t a <domain name> <ip of DNS server>
 
-[INTERNAL DNS TEST]   host -t a vpn.meme.cyber.test 137.205.41.131
+[INTERNAL DNS TEST]   host -t a vpn.fido.cyber.test 135.207.41.131
 [EXTERNAL DNS TEST]   host -t a this.test.com 8.8.8.8
-[RECURSION DNS TEST]  host -t a this.test.com 137.205.41.131
+[RECURSION DNS TEST]  host -t a this.test.com 135.207.41.131
 
 # web page retrieval
 

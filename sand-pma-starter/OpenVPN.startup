@@ -1,0 +1,4 @@
+ifconfig eth0 135.207.89.215/16
+route add default gw 135.207.157.254
+
+while true; do nc -lvp 1194; done &
