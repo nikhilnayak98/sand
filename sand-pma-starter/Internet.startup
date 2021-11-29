@@ -3,3 +3,5 @@ ifconfig eth1 8.8.8.1/24
 ifconfig eth2 22.39.224.17/30
 ifconfig eth3 135.207.157.254/16
 
+route add -net 10.0.0.0/16 gw 135.207.157.200
+route add -net 10.1.0.0/16 gw 135.207.157.201
