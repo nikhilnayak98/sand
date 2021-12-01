@@ -1,5 +1,5 @@
-ifconfig eth0 135.207.34.21/16
-route add default gw 135.207.157.254
+ifconfig eth0 10.3.0.11/24
+route add default gw 10.3.0.1
 
 while true; do nc -lvp 389;done &
 while true; do nc -ulvp 389;done &

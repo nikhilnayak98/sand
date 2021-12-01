@@ -1,5 +1,5 @@
-ifconfig eth0 135.207.139.114/16
-route add default gw 135.207.157.254
+ifconfig eth0 172.17.0.11/24
+route add default gw 172.17.0.1
 
 while true; do nc -lvp 25;done &
 while true; do nc -lvp 587;done &

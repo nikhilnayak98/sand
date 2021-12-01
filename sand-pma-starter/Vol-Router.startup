@@ -1,5 +1,5 @@
-ifconfig eth0 10.0.0.1/16
-ifconfig eth1 135.207.157.200/16
+ifconfig eth0 10.1.0.1/16
+ifconfig eth1 135.207.157.201/16
 
 #route add -net 135.207.0.0/16 gw 10.0.0.1
 route add default gw 135.207.157.254
