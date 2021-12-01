@@ -1,0 +1,23 @@
+#ifconfig eth0 201.224.131.22/16
+#ifconfig eth1 8.8.8.1/24
+#ifconfig eth2 22.39.224.17/30
+
+# Internet
+ifconfig eth0 135.207.157.200/16
+
+# ECONET
+ifconfig eth1 172.16.0.1/24
+
+# EDMZNET
+ifconfig eth2 172.17.0.1/24
+
+# EXTNET
+ifconfig eth3 172.18.0.1/24
+
+# MGMTNET
+ifconfig eth4 172.19.0.1/24
+
+route add -net 10.1.0.0/21 gw 172.16.0.2
+route add -net 10.2.0.0/21 gw 172.16.0.2
+route add -net 10.3.0.0/24 gw 172.16.0.2
+route add -net 10.4.0.0/24 gw 172.16.0.2

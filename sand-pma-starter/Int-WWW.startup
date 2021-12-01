@@ -1,5 +1,5 @@
-ifconfig eth0 135.207.98.155/16
-route add default gw 135.207.157.254
+ifconfig eth0 10.4.0.11/24
+route add default gw 10.4.0.1
 
 a2enmod ssl
 a2ensite default-ssl
