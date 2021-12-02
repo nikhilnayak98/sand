@@ -1,7 +1,3 @@
-#ifconfig eth0 201.224.131.22/16
-#ifconfig eth1 8.8.8.1/24
-#ifconfig eth2 22.39.224.17/30
-
 # Internet
 ifconfig eth0 135.207.157.200/16
 
@@ -21,3 +17,80 @@ route add -net 10.1.0.0/21 gw 172.16.0.2
 route add -net 10.2.0.0/21 gw 172.16.0.2
 route add -net 10.3.0.0/24 gw 172.16.0.2
 route add -net 10.4.0.0/24 gw 172.16.0.2
+
+route add default gw 135.207.157.254
+
+# iptables rule for natting all packets out to the internet 
+iptables -t nat -A POSTROUTING -o eth0 ! -d 172.17.0.0/24 -j SNAT --to 135.207.157.200
+
+# natting core routing
+iptables -A FORWARD -s 172.16.0.2 -d 172.17.0.0/24 -j ACCEPT
+iptables -A FORWARD -s 172.17.0.0/24 -d 172.16.0.2 -j ACCEPT
+
+#FILTERS
+# Block everything by default (whitelisting)
+iptables -P FORWARD DROP
+
+
+# Allow commlink between Enterprise Zone and External DMZ
+# Staff network
+iptables -A FORWARD -i eth1 -o eth2 -s 10.1.0.0/21 -d 172.17.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth1 -s 172.17.0.0/24 -d 10.1.0.0/21 -j ACCEPT
+# Volunteer network
+iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth1 -s 172.17.0.0/24 -d 10.2.0.0/21 -j ACCEPT
+
+
+# Allow commlink between Enterprise Zone and Extranet Zone
+# Staff network
+iptables -A FORWARD -i eth1 -o eth3 -s 10.1.0.0/21 -d 172.18.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.1.0.0/21 -j ACCEPT
+# Volunteer network
+iptables -A FORWARD -i eth1 -o eth3 -s 10.2.0.0/21 -d 172.18.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.2.0.0/21 -j ACCEPT
+
+
+# Allow commlink between Extranet Zone and Internal DMZ
+iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.4.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth3 -s 10.4.0.0/24 -d 172.18.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Extranet Zone and External DMZ
+iptables -A FORWARD -i eth3 -o eth2 -s 172.18.0.0/24 -d 172.17.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth3 -s 172.17.0.0/24 -d 172.18.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Internet and External DMZ (FUCK ITS NOT WORKING FOR DIFFERENT INTERNET BACKBONES)
+iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth0 -s 172.17.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Management Zone and all other zones behind Edge-Router
+#
+# Allow commlink between Management Zone and Internal DMZ
+iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.4.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.4.0.0/24 -d 172.19.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Management Zone and Enterprise Zone
+# Staff network
+iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.1.0.0/21 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.1.0.0/21 -d 172.19.0.0/24 -j ACCEPT
+# Volunteer network
+iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.2.0.0/21 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.2.0.0/21 -d 172.19.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Management Zone and Restricted Zone
+iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.3.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.3.0.0/24 -d 172.19.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Management Zone and External DMZ
+iptables -A FORWARD -i eth4 -o eth2 -s 172.19.0.0/24 -d 172.17.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth4 -s 172.17.0.0/24 -d 172.19.0.0/24 -j ACCEPT
+
+
+# Allow commlink between Management Zone and Extranet Zone
+iptables -A FORWARD -i eth4 -o eth3 -s 172.19.0.0/24 -d 172.18.0.0/24 -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth4 -s 172.18.0.0/24 -d 172.19.0.0/24 -j ACCEPT
