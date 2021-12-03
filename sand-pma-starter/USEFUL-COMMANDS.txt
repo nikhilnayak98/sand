@@ -21,8 +21,10 @@ wget --no-check-certificate https://faceybooky.com
 
 # Test Proxy HTTP and HTTPD
 
-export http_proxy="<ip address>:<port>"
+export http_proxy="172.17.0.12:3128"
 export https_proxy="<ip address>:<port>"
+
+curl -x 172.17.0.12:3128 -L http://faceybooky.com
 
 # Test if squid proxy is logging
 
