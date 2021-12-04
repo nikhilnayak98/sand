@@ -23,13 +23,20 @@ route add default gw 135.207.157.254
 # iptables rule for natting all packets out to the internet 
 iptables -t nat -A POSTROUTING -o eth0 ! -d 172.17.0.0/24 -j SNAT --to 135.207.157.200
 
+# Port forward traffic Mail server
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j DNAT --to-destination 172.17.0.11
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 587 -j DNAT --to-destination 172.17.0.11
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 993 -j DNAT --to-destination 172.17.0.11
+
+# Port forward traffic OpenVPN server
+#iptables -t nat -A PREROUTING -i eth0 -p udp --dport 1194 -j DNAT --to-destination 172.16.0.2
 
 # Hide managemement network infrastructure from rest of the network
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 172.17.0.0/24 -j SNAT --to 172.17.0.1
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 172.18.0.0/24 -j SNAT --to 172.18.0.1
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.1.0.0/24 -j SNAT --to 172.19.0.1
 
-# Natting core routing
+# Nating the packets from Core-Router to External DMZ
 iptables -A FORWARD -s 172.16.0.2 -d 172.17.0.0/24 -j ACCEPT
 iptables -A FORWARD -s 172.17.0.0/24 -d 172.16.0.2 -j ACCEPT
 
@@ -39,16 +46,16 @@ iptables -A FORWARD -s 172.17.0.0/24 -d 172.16.0.2 -j ACCEPT
 iptables -P FORWARD DROP
 
 
-# Allow commlink between Enterprise Zone and External DMZ
+# Allow commlink between Enterprise Zone and External DMZ (Allow port 25,587,993 for Mail server traffic, Allow 3128,3129 for Squid proxy traffic)
 # Staff network
-iptables -A FORWARD -i eth1 -o eth2 -s 10.1.0.0/21 -d 172.17.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -s 172.17.0.0/24 -d 10.1.0.0/21 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth2 -s 10.1.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
-iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -s 172.17.0.0/24 -d 10.2.0.0/21 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
-# Allow commlink between Enterprise Zone and Extranet Zone
+# Allow commlink between Enterprise Zone and Extranet Zone (WILL THINK ABOUT THIS SHIT LATER)
 # Staff network
 iptables -A FORWARD -i eth1 -o eth3 -s 10.1.0.0/21 -d 172.18.0.0/24 -j ACCEPT
 iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.1.0.0/21 -j ACCEPT
@@ -57,20 +64,32 @@ iptables -A FORWARD -i eth1 -o eth3 -s 10.2.0.0/21 -d 172.18.0.0/24 -j ACCEPT
 iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.2.0.0/21 -j ACCEPT
 
 
-# Allow commlink between Extranet Zone and Internal DMZ
-iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.4.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth3 -s 10.4.0.0/24 -d 172.18.0.0/24 -j ACCEPT
+# Allow commlink between Extranet Zone and Internal DMZ (Allow port 80, 443 for web traffic)
+iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
-# Allow commlink between Extranet Zone and External DMZ
-iptables -A FORWARD -i eth3 -o eth2 -s 172.18.0.0/24 -d 172.17.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth3 -s 172.17.0.0/24 -d 172.18.0.0/24 -j ACCEPT
+# Allow commlink between Extranet Zone and External DMZ (Allow port 25,587,993 for Mail traffic, Allow 3128,3129 for Squid proxy traffic) [THINK ABOUT THIS AGAIN]
+iptables -A FORWARD -i eth3 -o eth2 -s 172.18.0.0/24 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
-# Allow commlink between Internet and External DMZ (FUCK ITS NOT WORKING FOR DIFFERENT INTERNET BACKBONES)
-iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth0 -s 172.17.0.0/24 -j ACCEPT
+# Allow commlink between Internet and External DMZ (Allow port 25,587,993 for Mail traffic, Allow 3128,3129 for Squid proxy traffic)
+iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.11 -p tcp --match multiport --dports 25,587,993 -j ACCEPT
+iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.12 -p tcp --match multiport --dports 3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
+# Allow outgoing traffic to internet
+iptables -A FORWARD -s 172.17.0.11 -p tcp --match multiport --sports 25,587,993 -j ACCEPT
+iptables -A FORWARD -s 172.17.0.12 -p tcp --match multiport --dports 80,443 -j ACCEPT
+iptables -A FORWARD -d 172.17.0.12 -p tcp --match multiport --sports 80,443 -j ACCEPT
+
+# Allow outgoing DNS lookups (https://gist.github.com/thomasfr/9712418)
+iptables -A FORWARD -p udp -d 8.8.8.8 --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -p udp -s 8.8.8.8 --sport 53 -m state --state ESTABLISHED -j ACCEPT
+iptables -A FORWARD -p tcp -d 8.8.8.8 --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -p tcp -s 8.8.8.8 --sport 53 -m state --state ESTABLISHED -j ACCEPT
 
 # Allow commlink between Management Zone and all other zones behind Edge-Router
 #

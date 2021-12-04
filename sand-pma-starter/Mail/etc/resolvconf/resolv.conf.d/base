@@ -1,4 +1,4 @@
 # fido additions
-nameserver 10.4.0.12
+nameserver 8.8.8.8
 search fido.cyber.test
 
