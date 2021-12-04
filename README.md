@@ -1,6 +1,6 @@
 # ES94P:Security Architectures and Network Defence
 
-This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th December.
+This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th December. KMN!!!!!
 
 ## Phase 1
 
@@ -15,9 +15,11 @@ This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th
 
 - [x] 7. implement NAT / port-forwarding.
 - [ ] 8. robustly verify that connectivity is achieved / prevented as appropriate between clients and services.
-- [ ] 9. make a compelling case for your design and implementation of one augmented feature.
+- [ ] 9. make a compelling case for your design.
+- [ ] 10. implementation of one augmented feature.
 
 ## Phase 3
 
-- [ ] 10. make a compelling case for your design and implementation of two further significant, distinct, augmented features.
-- [ ] 11. demonstrate comprehensive mastery of all aspects of the the submission at all scales (detail through to overall concept).
+- [ ] 10. implementation of two further significant, distinct, augmented features.
+- [ ] 11. make a compelling case for your design.
+- [ ] 12. demonstrate comprehensive mastery of all aspects of the the submission at all scales (detail through to overall concept).
