@@ -1,5 +1,7 @@
 ifconfig eth0 10.3.0.11/24
 route add default gw 10.3.0.1
 
+systemctl start ssh
+
 while true; do nc -lvp 389;done &
 while true; do nc -ulvp 389;done &

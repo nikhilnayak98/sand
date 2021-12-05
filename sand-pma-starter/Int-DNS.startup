@@ -1,4 +1,7 @@
 ifconfig eth0 10.4.0.12/24
 route add default gw 10.4.0.1
+
+systemctl start ssh
+
 chmod +r /etc/dnsmasq_static_hosts.conf
 service dnsmasq start

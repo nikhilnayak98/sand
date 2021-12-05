@@ -1,6 +1,8 @@
 ifconfig eth0 10.4.0.11/24
 route add default gw 10.4.0.1
 
+systemctl start ssh
+
 a2enmod ssl
 a2ensite default-ssl
 service apache2 start

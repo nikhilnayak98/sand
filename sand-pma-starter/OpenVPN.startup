@@ -1,4 +1,6 @@
 ifconfig eth0 172.16.0.11/24
 route add default gw 172.16.0.1
 
+systemctl start ssh
+
 while true; do nc -lvp 1194; done &

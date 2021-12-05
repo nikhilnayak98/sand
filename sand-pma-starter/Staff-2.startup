@@ -1,2 +1,4 @@
 ifconfig eth0 10.1.0.12/21
 route add default gw 10.1.0.1
+
+systemctl start ssh
