@@ -1,0 +1,9 @@
+ifconfig eth0 172.17.0.13/24
+route add default gw 172.17.0.1
+
+systemctl start ssh
+
+a2enmod ssl
+a2ensite default-ssl
+service apache2 start
+

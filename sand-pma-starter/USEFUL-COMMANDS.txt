@@ -1,3 +1,12 @@
+# Listen for tcp connections
+nc -lvp 25
+nc -lvp 587
+nc -lvp 993
+nc -lvp 389
+
+# Listen for udp connections
+nc -ulvp 389
+
 # Test a tcp and udp connections
 nc -v mail 25
 nc -v mail 587
@@ -6,11 +15,9 @@ nc -v ldap 389
 nc -u ldap 389
 
 # Test a udp connection (probably can be done with NC, but NMAP FTW)
-
 nmap -sU -p <port> <ip address>
 
 # Test DNS Server
-
 host -t a <domain name> <ip of DNS server>
 
 [INTERNAL DNS TEST]   host -t a vpn.fido.cyber.test 135.207.41.131
@@ -18,21 +25,16 @@ host -t a <domain name> <ip of DNS server>
 [RECURSION DNS TEST]  host -t a this.test.com 135.207.41.131
 
 # web page retrieval
-
 wget faceybooky.com
 wget --no-check-certificate www
 wget --no-check-certificate https://faceybooky.com
 
 # Test Proxy HTTP and HTTPD
-
 export http_proxy="172.17.0.12:3128"
 export https_proxy="<ip address>:<port>"
 
+# Test staff machines can access External web server using squid
 curl -x squid:3129 -L http://faceybooky.com
 
 # Test if squid proxy is logging
-
 tail -f /var/log/squid/access.log
-
-# Restart automation
-alias lrestart='f(){ lcrash "$@"; lstart "$@"; unset -f f; }; f'
