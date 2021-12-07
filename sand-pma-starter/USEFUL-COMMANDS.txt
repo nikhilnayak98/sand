@@ -41,3 +41,12 @@ tail -f /var/log/squid/access.log
 
 # Restart automation
 alias lrestart='f(){ lcrash "$@"; lstart "$@"; unset -f f; }; f'
+
+# Set nameserver to use Cloudflare DNS
+echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+wget https://git.io/vpn -O openvpn-install.sh
+chmod +x openvpn-install.sh
+./openvpn-install.sh -y
+
+# install snort
+apt-get install snort -y

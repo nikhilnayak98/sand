@@ -31,6 +31,8 @@ iptables -t nat -A PREROUTING -i eth0 -p tcp --match multiport --dports 25,587,9
 
 # Port forward traffic OpenVPN server
 iptables -t nat -A PREROUTING -i eth0 -p udp --dport 1194 -j DNAT --to-destination 172.20.0.11
+iptables -A FORWARD -p udp --dport 1194 -d 172.20.0.11 -j ACCEPT
+iptables -A FORWARD -p udp --sport 1194 -d 172.20.0.11 -j ACCEPT
 
 # Hide managemement network infrastructure from rest of the network using NAT
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 172.17.0.0/24 -j SNAT --to 172.19.0.1

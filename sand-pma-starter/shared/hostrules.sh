@@ -164,10 +164,23 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo ">>>Deploy OpenVPN host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    # Set nameserver to use Cloudflare DNS
+#    echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+#    echo 'nameserver 8.8.8.8' > /etc/resolv.conf
+#    echo 'nameserver 10.4.0.12' > /etc/resolv.conf
+     # Start download openvpn
+#    apt-get install snort -y
+#    wget https://git.io/vpn -O openvpn-install.sh
+#    chmod +x openvpn-install.sh
+#    ./openvpn-install.sh -y
+
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
     iptables -A INPUT -p tcp --dport 1194 -j ACCEPT
     iptables -A OUTPUT -p tcp --sport 1194 -m state --state ESTABLISHED -j ACCEPT
+    # For commlink with internet (KINDA CONFUSING)
+    iptables -A OUTPUT -p tcp --match multiport --dports 80,443 -j ACCEPT
+    iptables -A INPUT -p tcp --match multiport --sports 80,443 -m state --state ESTABLISHED -j ACCEPT
     # For ssh from Management Zone
     iptables -A INPUT -s 172.19.0.0/24 -p tcp --dport 22 -j ACCEPT
     iptables -A OUTPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
