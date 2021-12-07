@@ -187,14 +187,14 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
+    iptables -A OUTPUT -p tcp --match multiport --dports 80,443,25,53,587,993,3128,3129 -j ACCEPT
+    iptables -A INPUT -p tcp --match multiport --sports 80,443,25,53,587,993,3128,3129 -m state --state ESTABLISHED -j ACCEPT
     # Allow outgoing ssh only. Block incoming ssh.
     iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
     iptables -A INPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
     iptables -A OUTPUT -p udp --dport 22 -j ACCEPT
     iptables -A INPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
-    # For DNS
-    iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
-    iptables -A INPUT -p tcp --sport 53 -m state --state ESTABLISHED -j ACCEPT
+    # For DNS udp
     iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
     iptables -A INPUT -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT
 fi
