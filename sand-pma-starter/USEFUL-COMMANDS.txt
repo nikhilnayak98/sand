@@ -40,10 +40,11 @@ curl -x squid:3129 -L http://faceybooky.com
 tail -f /var/log/squid/access.log
 
 # Restart automation
-alias lrestart='f(){ lcrash "$@"; lstart "$@"; unset -f f; }; f'
+alias lr='f(){ lcrash "$@"; lstart "$@"; unset -f f; }; f'
 
 # Set nameserver to use Cloudflare DNS
 echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+echo 'nameserver 10.4.0.12' > /etc/resolv.conf
 wget https://git.io/vpn -O openvpn-install.sh
 chmod +x openvpn-install.sh
 ./openvpn-install.sh -y

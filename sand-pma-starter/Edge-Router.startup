@@ -29,10 +29,11 @@ iptables -t nat -A POSTROUTING -o eth0 ! -d 172.17.0.0/24 -j SNAT --to 135.207.1
 # Port forward traffic to Mail server
 iptables -t nat -A PREROUTING -i eth0 -p tcp --match multiport --dports 25,587,993 -j DNAT --to-destination 172.17.0.11
 
+# Port forward traffic to External web server
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 8080 -j DNAT --to-destination 172.17.0.13:80
+
 # Port forward traffic OpenVPN server
 iptables -t nat -A PREROUTING -i eth0 -p udp --dport 1194 -j DNAT --to-destination 172.20.0.11
-iptables -A FORWARD -p udp --dport 1194 -d 172.20.0.11 -j ACCEPT
-iptables -A FORWARD -p udp --sport 1194 -d 172.20.0.11 -j ACCEPT
 
 # Hide managemement network infrastructure from rest of the network using NAT
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 172.17.0.0/24 -j SNAT --to 172.19.0.1
@@ -56,10 +57,18 @@ iptables -P FORWARD DROP
 # Allow 3128, 3129 for Squid proxy traffic
 iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.11 -p tcp --match multiport --dports 25,587,993 -j ACCEPT # incoming traffic to mail
 iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.12 -p tcp --match multiport --dports 3128,3129 -j ACCEPT # incoming traffic to squid
+iptables -A FORWARD -i eth0 -o eth2 -d 172.17.0.13 -p tcp --match multiport --dports 80,443 -j ACCEPT # incoming traffic to external web server
 iptables -A FORWARD -i eth2 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow outgoing traffic to internet from Mail
 iptables -A FORWARD -s 172.17.0.11 -p tcp --match multiport --sports 25,587,993 -j ACCEPT
+
+# Allow outgoing traffic to internet from External web server
+iptables -A FORWARD -s 172.17.0.13 -p tcp --match multiport --sports 80,443 -j ACCEPT
+
+# Allow traffic between internet and OpenVPN
+iptables -A FORWARD -d 172.20.0.11 -p udp --dport 1194 -j ACCEPT
+iptables -A FORWARD -s 172.20.0.11 -p udp --sport 1194 -j ACCEPT
 
 # Allow outgoing and incoming traffic to internet from Squid
 iptables -A FORWARD -s 172.17.0.12 -p tcp --match multiport --dports 80,443 -j ACCEPT
@@ -77,6 +86,16 @@ iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCE
 # Volunteer network
 iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
 iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+##################################################################################
+
+
+##################################################################################
+# Allow commlink between VPN Zone and Internal DMZ
+# Allow port 80, 443 for web traffic
+# Allow port 53 for DNS
+iptables -A FORWARD -i eth5 -o eth1 -s 172.20.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
+iptables -A FORWARD -i eth5 -o eth1 -s 172.20.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth5 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
