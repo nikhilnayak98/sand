@@ -66,9 +66,9 @@ iptables -A FORWARD -s 172.17.0.11 -p tcp --match multiport --sports 25,587,993 
 # Allow outgoing traffic to internet from External web server
 iptables -A FORWARD -s 172.17.0.13 -p tcp --match multiport --sports 80,443 -j ACCEPT
 
-# Allow traffic between internet and OpenVPN
-iptables -A FORWARD -d 172.20.0.11 -p udp --dport 1194 -j ACCEPT
+# Allow outgoing and incoming traffic between internet and OpenVPN
 iptables -A FORWARD -s 172.20.0.11 -p udp --sport 1194 -j ACCEPT
+iptables -A FORWARD -d 172.20.0.11 -p udp --dport 1194 -j ACCEPT
 
 # Allow outgoing and incoming traffic to internet from Squid
 iptables -A FORWARD -s 172.17.0.12 -p tcp --match multiport --dports 80,443 -j ACCEPT
@@ -90,12 +90,18 @@ iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCE
 
 
 ##################################################################################
+#VPN Zone
+##################################################################################
 # Allow commlink between VPN Zone and Internal DMZ
 # Allow port 80, 443 for web traffic
 # Allow port 53 for DNS
-iptables -A FORWARD -i eth5 -o eth1 -s 172.20.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
-iptables -A FORWARD -i eth5 -o eth1 -s 172.20.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth5 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -s 172.20.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
+iptables -A FORWARD -s 172.20.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -s 10.4.0.0/24 -d 172.20.0.0/24 -j ACCEPT
+
+iptables -A FORWARD -s 10.8.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
+iptables -A FORWARD -s 10.8.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -s 10.4.0.0/24 -d 10.8.0.0/24 -j ACCEPT
 ##################################################################################
 
 
