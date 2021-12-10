@@ -15,8 +15,9 @@ ifconfig eth4 10.4.0.1/24
 
 route add default gw 172.16.0.1
 
-# Hide internal lan side insfrastructure from Edge side network
+# Hide enterprise zone insfrastructure from Edge side network
 iptables -t nat -A POSTROUTING -s 10.1.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
+iptables -t nat -A POSTROUTING -s 10.2.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
 
 
 # FILTERS
