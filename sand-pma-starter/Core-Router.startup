@@ -15,9 +15,9 @@ ifconfig eth4 10.4.0.1/24
 
 route add default gw 172.16.0.1
 
-# Hide enterprise zone insfrastructure from Edge side network
-iptables -t nat -A POSTROUTING -s 10.1.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
-iptables -t nat -A POSTROUTING -s 10.2.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
+# Hide enterprise zone insfrastructure from Edge side network by aggressive Nating
+#iptables -t nat -A POSTROUTING -s 10.1.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
+#iptables -t nat -A POSTROUTING -s 10.2.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
 
 
 # FILTERS
@@ -32,11 +32,11 @@ iptables -P FORWARD DROP
 # Staff network
 iptables -A FORWARD -i eth1 -o eth4 -s 10.1.0.0/21 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -i eth1 -o eth4 -s 10.1.0.0/21 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth4 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth4 -o eth1 -s 10.4.0.0/24 -d 10.1.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
 iptables -A FORWARD -i eth2 -o eth4 -s 10.2.0.0/21 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -i eth2 -o eth4 -s 10.2.0.0/21 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth4 -o eth2 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth4 -o eth2 -s 10.4.0.0/24 -d 10.2.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -46,7 +46,7 @@ iptables -A FORWARD -i eth4 -o eth2 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow port 53 for DNS
 iptables -A FORWARD -i eth0 -o eth4 -s 172.18.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -i eth0 -o eth4 -s 172.18.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth4 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth4 -o eth0 -s 10.4.0.0/24 -d 172.18.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -58,25 +58,22 @@ iptables -A FORWARD -i eth4 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow port 53 for DNS
 iptables -A FORWARD -s 172.20.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -s 172.20.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -s 10.4.0.0/24 -d 172.20.0.0/24 -j ACCEPT
+iptables -A FORWARD -s 10.4.0.0/24 -d 172.20.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 iptables -A FORWARD -s 10.8.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -s 10.8.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -s 10.4.0.0/24 -d 10.8.0.0/24 -j ACCEPT
+iptables -A FORWARD -s 10.4.0.0/24 -d 10.8.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
 ##################################################################################
 # Allow commlink between Restricted Zone and Internal DMZ
 # Allow port 389 for ldap
+# Allow port 3306 for MySQL DB
 # Allow port 53 for DNS
-iptables -A FORWARD -i eth4 -o eth3 -s 10.4.0.0/24 -d 10.3.0.0/24 -p tcp --dport 389 -j ACCEPT
-iptables -A FORWARD -i eth4 -o eth3 -s 10.4.0.0/24 -d 10.3.0.0/24 -p udp --dport 389 -j ACCEPT
-iptables -A FORWARD -i eth3 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
-
-iptables -A FORWARD -i eth3 -o eth4 -s 10.3.0.0/24 -d 10.4.0.0/24 -p tcp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth3 -o eth4 -s 10.3.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth4 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth4 -o eth3 -s 10.4.0.0/24 -d 10.3.0.0/24 -p tcp --match multiport --dports 389,3306,53 -j ACCEPT
+iptables -A FORWARD -i eth4 -o eth3 -s 10.4.0.0/24 -d 10.3.0.0/24 -p udp --match multiport --dports 389,53 -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth4 -s 10.3.0.0/24 -d 10.4.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -87,10 +84,10 @@ iptables -A FORWARD -i eth4 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow 3128,3129 for Squid proxy traffic
 # Staff network
 iptables -A FORWARD -i eth1 -o eth0 -s 10.1.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
-iptables -A FORWARD -i eth0 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth0 -o eth1 -s 172.17.0.0/24 -d 10.1.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
 iptables -A FORWARD -i eth2 -o eth0 -s 10.2.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
-iptables -A FORWARD -i eth0 -o eth2 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth0 -o eth2 -s 172.17.0.0/24 -d 10.2.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -98,10 +95,10 @@ iptables -A FORWARD -i eth0 -o eth2 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow commlink between Enterprise Zone and Extranet Zone (I THINK NO TRAFFIC SHOULD BE ALLOWED)
 # Staff network
 #iptables -A FORWARD -i eth1 -o eth0 -s 10.1.0.0/21 -d 172.18.0.0/24 -j ACCEPT
-#iptables -A FORWARD -i eth0 -o eth1 -s 172.18.0.0/24 -d 10.1.0.0/21 -j ACCEPT
+#iptables -A FORWARD -i eth0 -o eth1 -s 172.18.0.0/24 -d 10.1.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
 #iptables -A FORWARD -i eth2 -o eth0 -s 10.2.0.0/21 -d 172.18.0.0/24 -j ACCEPT
-#iptables -A FORWARD -i eth0 -o eth2 -s 172.18.0.0/24 -d 10.2.0.0/21 -j ACCEPT
+#iptables -A FORWARD -i eth0 -o eth2 -s 172.18.0.0/24 -d 10.2.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -110,19 +107,19 @@ iptables -A FORWARD -i eth0 -o eth2 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow onesided traffic from Management Zone towards all zones
 # Allow commlink between Management Zone and Internal DMZ
 iptables -A FORWARD -i eth0 -o eth4 -s 172.19.0.0/24 -d 10.4.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth4 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth4 -o eth0 -s 10.4.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
 # Allow commlink between Management Zone and Enterprise Zone
 # Staff network
 iptables -A FORWARD -i eth0 -o eth1 -s 172.19.0.0/24 -d 10.1.0.0/21 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth0 -s 10.1.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
 iptables -A FORWARD -i eth0 -o eth2 -s 172.19.0.0/24 -d 10.2.0.0/21 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth0 -s 10.2.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
 # Allow commlink between Management Zone and Restricted Zone
 iptables -A FORWARD -i eth0 -o eth3 -s 172.19.0.0/24 -d 10.3.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth3 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth0 -s 10.3.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 #############################################################################

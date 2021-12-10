@@ -42,8 +42,9 @@ tail -f /var/log/squid/access.log
 # Restart automation
 alias lr='f(){ lcrash "$@"; lstart "$@"; unset -f f; }; f'
 
-# Set nameserver to use Cloudflare DNS
+# Set nameserver
 echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+echo 'nameserver 8.8.8.8' > /etc/resolv.conf
 echo 'nameserver 10.4.0.12' > /etc/resolv.conf
 wget https://git.io/vpn -O openvpn-install.sh
 chmod +x openvpn-install.sh
@@ -51,3 +52,20 @@ chmod +x openvpn-install.sh
 
 # install snort
 apt-get install snort -y
+
+
+
+# Tests
+curl www
+curl extwww
+curl -x squid:3129 -L faceybooky.com
+
+nc -v ldap 389
+nc -u -v ldap 389
+
+nc -v mail 25
+nc -v mail 587
+nc -v mail 993
+
+nc -v database 3306
+

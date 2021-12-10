@@ -12,9 +12,6 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo "Deploy Int-WWW host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
 
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
@@ -38,9 +35,6 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo "Deploy Int-DNS host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
 
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
@@ -67,9 +61,6 @@ then
     fi
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
-    
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
     iptables -A OUTPUT -p tcp --match multiport --dports 80,443,25,53,587,993,3128,3129 -j ACCEPT
@@ -90,13 +81,6 @@ then
     echo ">>>Deploy LDAP host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
-
-    # Open ports to check
-    systemctl start ncat-chat@389
-    systemctl start ncat-udp-echo@389
-
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
 
@@ -115,21 +99,36 @@ then
     iptables -A INPUT -s 172.19.0.0/24 -p udp --dport 22 -j ACCEPT
     iptables -A OUTPUT -p udp --sport 22 -m state --state ESTABLISHED -j ACCEPT
 
+# Database
+elif [ "$HOSTNAME" = "Database" ]
+then
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+    echo ">>>Deploy Database host firewall rules from hostrules.sh"
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+
+    iptables -P OUTPUT DROP
+    iptables -P INPUT DROP
+
+    iptables -A INPUT -p tcp --dport 3306 -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport 3306 -m state --state ESTABLISHED -j ACCEPT
+    # For DNS
+    iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
+    iptables -A INPUT -p tcp --sport 53 -m state --state ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+    iptables -A INPUT -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT
+    # For ssh from Management Zone
+    iptables -A INPUT -s 172.19.0.0/24 -p tcp --dport 22 -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
+    iptables -A INPUT -s 172.19.0.0/24 -p udp --dport 22 -j ACCEPT
+    iptables -A OUTPUT -p udp --sport 22 -m state --state ESTABLISHED -j ACCEPT
+
 # Mail Server
 elif [ "$HOSTNAME" = "Mail" ]
 then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo ">>>Deploy Mail host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
-
-    # Open ports to check
-    systemctl start ncat-chat@25
-    systemctl start ncat-chat@587
-    systemctl start ncat-chat@993
-
+    
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
     iptables -A INPUT -p tcp --match multiport --dports 25,587,993 -j ACCEPT
@@ -151,9 +150,6 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo ">>>Deploy Squid Proxy host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
 
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
@@ -179,9 +175,6 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo ">>>Deploy ExtDMZ-WWW host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
 
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
@@ -205,9 +198,6 @@ then
     echo ">>>Deploy OpenVPN host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
-    
     iptables -P OUTPUT DROP
     iptables -P FORWARD DROP
     iptables -P INPUT DROP
@@ -224,13 +214,6 @@ then
     #iptables -t nat -D POSTROUTING -s 10.8.0.0/24 ! -d 10.8.0.0/24 -j SNAT --to 135.207.157.200
     #iptables -D FORWARD -s 10.8.0.0/24 -j ACCEPT
     #iptables -D FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
-
-    # Enable net.ipv4.ip_forward for the system to send a network package from one network interface to another one on the same device permanently.
-    # As a temporary solution, do this instead: echo 1 > /proc/sys/net/ipv4/ip_forward
-    # Citation - (https://linuxhint.com/enable_ip_forwarding_ipv4_debian_linux/)
-	echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-openvpn-forward.conf
-    echo 'nameserver 10.4.0.12' > /etc/resolv.conf
-    systemctl enable --now openvpn-server@server.service
 
     # For OpenVPN specific communication
     iptables -A INPUT -p udp --dport 1194 -j ACCEPT
@@ -255,9 +238,6 @@ then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
     echo "Deploy Admin host firewall rules from hostrules.sh"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    
-    # Create admin user for ssh connections, because it is stupid to ssh into root
-    useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
     
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP

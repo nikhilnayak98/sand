@@ -35,14 +35,14 @@ iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 8080 -j DNAT --to-destinati
 # Port forward traffic OpenVPN server
 iptables -t nat -A PREROUTING -i eth0 -p udp --dport 1194 -j DNAT --to-destination 172.20.0.11
 
-# Hide managemement network infrastructure from rest of the network using NAT
+# Hide managemement network infrastructure from rest of the network by aggressive NATing
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 172.17.0.0/24 -j SNAT --to 172.19.0.1
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 172.18.0.0/24 -j SNAT --to 172.19.0.1
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.1.0.0/24 -j SNAT --to 172.19.0.1
 
-# Nating the packets from Core-Router to External DMZ
-iptables -A FORWARD -s 172.16.0.2 -d 172.17.0.0/24 -j ACCEPT
-iptables -A FORWARD -s 172.17.0.0/24 -d 172.16.0.2 -j ACCEPT
+# Allow packets from Core-Router to External DMZ
+#iptables -A FORWARD -s 172.16.0.2 -d 172.17.0.0/24 -j ACCEPT
+#iptables -A FORWARD -s 172.17.0.0/24 -d 172.16.0.2 -j ACCEPT
 
 
 #FILTERS
@@ -83,10 +83,10 @@ iptables -A FORWARD -d 172.17.0.12 -p tcp --match multiport --sports 80,443 -m s
 # Allow port 3128, 3129 for Squid proxy traffic
 # Staff network
 iptables -A FORWARD -i eth1 -o eth2 -s 10.1.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth1 -s 172.17.0.0/24 -d 10.1.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
 iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth1 -s 172.17.0.0/24 -d 10.2.0.0/21 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -98,11 +98,15 @@ iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow port 53 for DNS
 iptables -A FORWARD -s 172.20.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -s 172.20.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -s 10.4.0.0/24 -d 172.20.0.0/24 -j ACCEPT
+iptables -A FORWARD -s 10.4.0.0/24 -d 172.20.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
+##################################################################################
 
-iptables -A FORWARD -s 10.8.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
-iptables -A FORWARD -s 10.8.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -s 10.4.0.0/24 -d 10.8.0.0/24 -j ACCEPT
+##################################################################################
+# Allow commlink between VPN Zone and External DMZ
+# Allow port 80, 443 for web traffic
+# Allow port 53 for DNS
+iptables -A FORWARD -s 172.20.0.0/24 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -s 10.17.0.0/24 -d 172.20.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -123,7 +127,7 @@ iptables -A FORWARD -s 10.4.0.0/24 -d 10.8.0.0/24 -j ACCEPT
 # Allow port 53 for DNS
 iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.4.0.0/24 -p tcp --match multiport --dports 80,443,53 -j ACCEPT
 iptables -A FORWARD -i eth3 -o eth1 -s 172.18.0.0/24 -d 10.4.0.0/24 -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth3 -s 10.4.0.0/24 -d 172.18.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -133,7 +137,7 @@ iptables -A FORWARD -i eth1 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCE
 # Allow port 25, 587, 993 for Mail traffic (BE MORE SPECIFIC. BLOCK MAIL ACCESS)
 # Allow 3128, 3129 for Squid proxy traffic
 iptables -A FORWARD -i eth3 -o eth2 -s 172.18.0.0/24 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth3 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth3 -s 172.17.0.0/24 -d 172.18.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
 
@@ -151,29 +155,29 @@ iptables -A FORWARD -p tcp -s 8.8.8.8 --sport 53 -m state --state ESTABLISHED -j
 #
 # Allow commlink between Management Zone and Internal DMZ
 iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.4.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.4.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow commlink between Management Zone and Enterprise Zone
 # Staff network
 iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.1.0.0/21 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.1.0.0/21 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
 iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.2.0.0/21 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.2.0.0/21 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow commlink between Management Zone and Restricted Zone
 iptables -A FORWARD -i eth4 -o eth1 -s 172.19.0.0/24 -d 10.3.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth4 -s 10.3.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow commlink between Management Zone and External DMZ
 iptables -A FORWARD -i eth4 -o eth2 -s 172.19.0.0/24 -d 172.17.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth2 -o eth4 -s 172.17.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow commlink between Management Zone and Extranet Zone
 iptables -A FORWARD -i eth4 -o eth3 -s 172.19.0.0/24 -d 172.18.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth3 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth4 -s 172.18.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # Allow commlink between Management Zone and OpenVPN
 iptables -A FORWARD -i eth4 -o eth5 -s 172.19.0.0/24 -d 172.20.0.0/24 -j ACCEPT
-iptables -A FORWARD -i eth5 -o eth4 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth5 -o eth4 -s 172.20.0.0/24 -d 172.19.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ###############################################################################

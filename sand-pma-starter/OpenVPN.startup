@@ -1,6 +1,15 @@
 ifconfig eth0 172.20.0.11/24
 route add default gw 172.20.0.1
 
-systemctl start ssh
+# Enable net.ipv4.ip_forward for the system to send a network package from one network interface to another one on the same device permanently.
+# As a temporary solution, do this instead: echo 1 > /proc/sys/net/ipv4/ip_forward
+# Citation - (https://linuxhint.com/enable_ip_forwarding_ipv4_debian_linux/)
+echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-openvpn-forward.conf
+systemctl enable --now openvpn-server@server.service
+systemctl start openvpn
 
-while true; do nc -lvp 1194; done &
+# Create admin user for ssh connections, because it is stupid to ssh into root
+useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
+
+# Start ssh service
+systemctl start ssh

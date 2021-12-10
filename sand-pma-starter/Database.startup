@@ -1,8 +1,11 @@
-ifconfig eth0 10.1.0.12/21
-route add default gw 10.1.0.1
+ifconfig eth0 10.3.0.12/24
+route add default gw 10.3.0.1
 
 # Create admin user for ssh connections, because it is stupid to ssh into root
 useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
 
 # Start ssh service
 systemctl start ssh
+
+# Open ports to check
+systemctl start ncat-chat@3306
