@@ -78,13 +78,14 @@ iptables -A FORWARD -d 172.17.0.12 -p tcp --match multiport --sports 80,443 -m s
 
 ##################################################################################
 # Allow commlink between Enterprise Zone and External DMZ
+# Allow port 80, 443 for External DMZ web server traffic
 # Allow port 25, 587, 993 for Mail server traffic
 # Allow port 3128, 3129 for Squid proxy traffic
 # Staff network
-iptables -A FORWARD -i eth1 -o eth2 -s 10.1.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth2 -s 10.1.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
 iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
 # Volunteer network
-iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth1 -o eth2 -s 10.2.0.0/21 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,25,587,993,3128,3129 -j ACCEPT
 iptables -A FORWARD -i eth2 -o eth1 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 
