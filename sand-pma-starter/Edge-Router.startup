@@ -47,7 +47,9 @@ iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.1.0.0/24 -j SNAT --to 172.
 
 #FILTERS
 # Block everything by default (whitelisting)
+iptables -P INPUT DROP
 iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
 
 
 ##################################################################################
@@ -134,9 +136,9 @@ iptables -A FORWARD -i eth1 -o eth3 -s 10.4.0.0/24 -d 172.18.0.0/24 -m state --s
 ##################################################################################
 # Allow commlink between Extranet Zone and External DMZ
 # Allow port 80, 443 for External DMZ web server traffic
-# Allow port 25, 587, 993 for Mail traffic (BE MORE SPECIFIC. BLOCK MAIL ACCESS)
+# Do not allow port 25, 587, 993 for Mail traffic because MapCo does not need to have access to Fido's mail server
 # Allow 3128, 3129 for Squid proxy traffic
-iptables -A FORWARD -i eth3 -o eth2 -s 172.18.0.0/24 -d 172.17.0.0/24 -p tcp --match multiport --dports 25,587,993,3128,3129 -j ACCEPT
+iptables -A FORWARD -i eth3 -o eth2 -s 172.18.0.0/24 -d 172.17.0.0/24 -p tcp --match multiport --dports 80,443,3128,3129 -j ACCEPT
 iptables -A FORWARD -i eth2 -o eth3 -s 172.17.0.0/24 -d 172.18.0.0/24 -m state --state ESTABLISHED,RELATED -j ACCEPT
 ##################################################################################
 

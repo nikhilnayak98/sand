@@ -22,7 +22,9 @@ route add default gw 172.16.0.1
 
 # FILTERS
 # Block everything by default (whitelisting)
+iptables -P INPUT DROP
 iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
 
 
 ##################################################################################
