@@ -15,12 +15,12 @@ then
 
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
-    iptables -A INPUT -p tcp --match multiport --dports 80,443,389 -j ACCEPT
-    iptables -A OUTPUT -p tcp --match multiport --sports 80,443,389 -m state --state ESTABLISHED -j ACCEPT
+    iptables -A INPUT -p tcp --match multiport --dports 80,443 -j ACCEPT
+    iptables -A OUTPUT -p tcp --match multiport --sports 80,443 -m state --state ESTABLISHED -j ACCEPT
     # For LDAP Access, because Internal DMZ uses services in the Restricted Zone.
     # For DNS
-    iptables -A OUTPUT -p tcp --match multiport --dports 389,53 -j ACCEPT
-    iptables -A INPUT -p tcp --match multiport --sports 389,53 -m state --state ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p tcp --match multiport --dports 389,53,3306 -j ACCEPT
+    iptables -A INPUT -p tcp --match multiport --sports 389,53,3306 -m state --state ESTABLISHED -j ACCEPT
     iptables -A OUTPUT -p udp --match multiport --dports 389,53 -j ACCEPT
     iptables -A INPUT -p udp --match multiport --sports 389,53 -m state --state ESTABLISHED -j ACCEPT
     # For ssh from Management Zone
@@ -241,8 +241,8 @@ then
     
     iptables -P OUTPUT DROP
     iptables -P INPUT DROP
-    iptables -A OUTPUT -p tcp --match multiport --dports 80,443,25,53,587,993,3128,3129 -j ACCEPT
-    iptables -A INPUT -p tcp --match multiport --sports 80,443,25,53,587,993,3128,3129 -m state --state ESTABLISHED -j ACCEPT
+    iptables -A OUTPUT -p tcp --match multiport --dports 80,443,25,53,587,993,3128,3129,389,3306 -j ACCEPT
+    iptables -A INPUT -p tcp --match multiport --sports 80,443,25,53,587,993,3128,3129,389,3306 -m state --state ESTABLISHED -j ACCEPT
     # Allow outgoing ssh only. Block incoming ssh.
     iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
     iptables -A INPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT

@@ -2,6 +2,9 @@ ifconfig eth0 10.2.0.13/21
 route add default gw 10.2.0.1
 
 # Create admin user for ssh connections, because it is stupid to ssh into root
+# -m : user with home directory, Citation - https://linuxhint.com/linux_useradd/
+# -g -G : create new group, Citation - https://unix.stackexchange.com/questions/121071/what-does-adduser-do-that-useradd-doesnt
+#                                      https://dextutor.com/useradd-command-in-linux/
 useradd admin -s /bin/bash -m -g sudo -G sudo; echo "admin:pass" | chpasswd
 
 # Start ssh service

@@ -13,11 +13,8 @@ ifconfig eth3 10.3.0.1/24
 # IDMZNET
 ifconfig eth4 10.4.0.1/24
 
+# Set Edge-Router as the default gateway
 route add default gw 172.16.0.1
-
-# Hide enterprise zone insfrastructure from Edge side network by aggressive Nating
-#iptables -t nat -A POSTROUTING -s 10.1.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
-#iptables -t nat -A POSTROUTING -s 10.2.0.0/21 -j SNAT --to 172.16.0.2 -d 172.17.0.0/24
 
 
 # FILTERS
@@ -69,8 +66,8 @@ iptables -A FORWARD -s 10.4.0.0/24 -d 10.8.0.0/24 -m state --state ESTABLISHED,R
 
 
 ##################################################################################
-# Allow commlink between Restricted Zone and Internal DMZ
-# Allow port 389 for ldap
+# Allow commlink between Internal DMZ and Restricted Zone
+# Allow port 389 for LDAP
 # Allow port 3306 for MySQL DB
 # Allow port 53 for DNS
 iptables -A FORWARD -i eth4 -o eth3 -s 10.4.0.0/24 -d 10.3.0.0/24 -p tcp --match multiport --dports 389,3306,53 -j ACCEPT
