@@ -20,7 +20,7 @@ nmap -sU -p <port> <ip address>
 # Test DNS Server
 host -t a <domain name> <ip of DNS server>
 
-[INTERNAL DNS TEST]   host -t a vpn.fido.cyber.test 10.4.0.12
+[INTERNAL DNS TEST]   host -t a www.fido.cyber.test 10.4.0.12
 [EXTERNAL DNS TEST]   host -t a faceybooky.com 8.8.8.8
 [RECURSION DNS TEST]  host -t a this.test.com 135.207.41.131
 
@@ -30,7 +30,7 @@ wget --no-check-certificate www
 wget --no-check-certificate https://faceybooky.com
 
 # Test Proxy HTTP and HTTPD
-export http_proxy="172.17.0.12:3129"
+export http_proxy="172.17.0.12"
 export https_proxy="<ip address>:<port>"
 
 # Test staff machines can access External web server using squid
