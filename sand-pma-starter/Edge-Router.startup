@@ -46,7 +46,7 @@ iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.2.0.0/21 -j SNAT --to 172.
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.3.0.0/24 -j SNAT --to 172.19.0.1
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.4.0.0/24 -j SNAT --to 172.19.0.1
 
-# TCP SYN Flood Protection Attempt
+# TCP SYN Flood Protection Attempt (https://blog.sevagas.com/Iptables-firewall-versus-nmap-and-hping3-32)
 # Create new chain for SYN Flood, because writing rules becomes easier
 iptables -N SYN-FLOOD
 # Jump to chain when a syn packet is detected
@@ -59,7 +59,7 @@ iptables -A SYN-FLOOD -m limit --limit 6/h --limit-burst 1 -j LOG --log-prefix "
 iptables -A SYN-FLOOD -j DROP
 
 
-# UDP Flood Protection Attempt
+# UDP Flood Protection Attempt (https://blog.sevagas.com/Iptables-firewall-versus-nmap-and-hping3-32)
 # Create new chain for UDP Flood, because writing rules becomes easier
 iptables -N UDP-FLOOD
 # Jump to chain if UDP
