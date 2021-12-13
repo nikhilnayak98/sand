@@ -46,6 +46,31 @@ iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.2.0.0/21 -j SNAT --to 172.
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.3.0.0/24 -j SNAT --to 172.19.0.1
 iptables -t nat -A POSTROUTING -s 172.19.0.0/24 -d 10.4.0.0/24 -j SNAT --to 172.19.0.1
 
+# TCP SYN Flood Protection Attempt
+# Create new chain for SYN Flood, because writing rules becomes easier
+iptables -N SYN-FLOOD
+# Jump to chain when a syn packet is detected
+iptables -A FORWARD -p tcp --syn -j SYN-FLOOD
+# Limit packet rate to 2 per second with a 6 per second burst
+iptables -A SYN-FLOOD -m limit --limit 2/s --limit-burst 6 -j RETURN
+# Log
+iptables -A SYN-FLOOD -m limit --limit 6/h --limit-burst 1 -j LOG --log-prefix "Firewall: SYN Flood Detected"
+# Drop the packet
+iptables -A SYN-FLOOD -j DROP
+
+
+# UDP Flood Protection Attempt
+# Create new chain for UDP Flood, because writing rules becomes easier
+iptables -N UDP-FLOOD
+# Jump to chain if UDP
+iptables -A FORWARD -p udp -j UDP-FLOOD
+# Limit UDP rate to 10/sec with burst at 20 (sometimes it may not be enough)
+iptables -A UDP-FLOOD -m limit --limit 10/s --limit-burst 20 -j RETURN
+# Log
+iptables -A UDP-FLOOD -m limit --limit 6/h --limit-burst 1 -j LOG --log-prefix "Firewall: UDP Flood Detected"
+# Drop the packet
+iptables -A UDP-FLOOD -j DROP
+
 
 #FILTERS
 # Block everything by default (whitelisting)
