@@ -24,6 +24,16 @@ This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th
 - [x] 11. make a compelling case for your design.
 - [x] 12. demonstrate comprehensive mastery of all aspects of the the submission at all scales (detail through to overall concept).
 
+## Augmented Features:
+
+1. TCP SYN Flood Protection.
+2. UDP Flood Protection.
+3. Usage of OpenVPN to connect to internal network.
+4. Automation of host firewall rules deployment.
+5. Usage of Squid Proxy Server to access Internet from Enterprise Zone and Extranet Zone.
+6. Usage of Squid Proxy Server to block malicious websites.
+7. Blocking SSH access, allow SSH only from Management Zone.
+8. Blocking SSH access into root, allow SSH access only to admin account.
 
 ## How to Run Lab
 - <code>cd sand-pma-starter</code>
