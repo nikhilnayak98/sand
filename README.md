@@ -23,3 +23,9 @@ This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th
 - [x] 10. implementation of two further significant, distinct, augmented features.
 - [x] 11. make a compelling case for your design.
 - [x] 12. demonstrate comprehensive mastery of all aspects of the the submission at all scales (detail through to overall concept).
+
+
+## How to Run Lab
+- <code>cd sand-pma-starter</code>
+- <code>chmod +x /shared/hostrules.sh</code>
+- <code>lstart</code>
