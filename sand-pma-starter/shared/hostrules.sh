@@ -2,7 +2,6 @@
 # 
 # Author : Nikhil Ranjan Nayak
 # Web: https://github.com/nikhilnayak98/sand
-# Email: Nikhil-Ranjan.Nayak@warwick.ac.uk
 # Description: Automation of host firewall rules deployment.
 
 
