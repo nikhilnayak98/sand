@@ -1,6 +1,9 @@
 # ES94P:Security Architectures and Network Defence
 
-This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th December. Got Distinction Marks :)!
+This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th December.
+
+## Network Design
+![Network Design](https://raw.githubusercontent.com/nikhilnayak98/sand/main/Network%20Design.png)
 
 ## Phase 1
 
