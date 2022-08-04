@@ -1,6 +1,6 @@
-# ES94P:Security Architectures and Network Defence
+# Security Architectures and Network Defence
 
-This repo contains workings of netkit 1.1.4 environment for SAND PMA due on 13th December.
+A scalable secure network infrastructure with defined credible zones of trust. It has automated iptables firewall rules deployment. It also has tested prevention firewall rules for TCP and UDP Flood attacks.
 
 ## Network Design
 ![Network Design](https://raw.githubusercontent.com/nikhilnayak98/sand/main/Network%20Design.png)
